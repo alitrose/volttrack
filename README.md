@@ -2,7 +2,7 @@
 
 > *"Real-time grid telemetry, progressive slab billing, and tamper defense — from meter pulse to paid invoice."*
 
-**Deployment:** Localhost Stack (`http://localhost:5000` · MySQL 8.0 on Port `3306`)
+**Live Website:** [https://volttrack-web-production.up.railway.app/](https://volttrack-web-production.up.railway.app/)
 
 **Architecture:** Full-Stack Python/MySQL (`HTML5 + Tailwind CSS + Chart.js` Frontend · `Python + Flask` REST API · `MySQL 8.0 InnoDB` Relational DBMS)
 
@@ -50,7 +50,7 @@ All demo accounts are pre-seeded in MySQL (`02_seed_data.sql`) with salted Werkz
 ## 4. Technology Stack
 
 - **Frontend:** HTML5, Tailwind CSS (CDN), Vanilla JavaScript (`Fetch API` + JWT storage), Chart.js (`4.x`), Noir & Crimson UI theme (`styles.css`)
-- **Backend:** Python `3.11+`, Flask, Flask-JWT-Extended, Flask-CORS, PyMySQL, Werkzeug, APScheduler, ReportLab, `python-dotenv`
+- **Backend:** Python `3.12`, Flask, Gunicorn, Flask-JWT-Extended, Flask-CORS, PyMySQL, Werkzeug, APScheduler, ReportLab, `python-dotenv`
 - **Database:** MySQL Community Server `8.0` (InnoDB engine, `utf8mb4_unicode_ci`, 13 normalized/partitioned tables, 4 views, 4 triggers, 3 stored procedures, 1 UDF, 4 RBAC roles)
 - **Simulator & QA:** Python `argparse` telemetry generator (`simulator/meter_simulator.py`), `pytest`, standalone 17-case DBMS integrity suite, `EXPLAIN ANALYZE` index benchmark script
 
@@ -113,7 +113,8 @@ volttrack/
 │   ├── 08_index_benchmark.sql          # EXPLAIN ANALYZE index vs full-scan benchmark
 │   ├── apply_sql.py                    # Automated ordered SQL migration runner
 │   ├── backup_restore.md               # mysqldump, PITR & concurrency locking guide
-│   └── generate_seed_sql.py            # Seed data generator script
+│   ├── generate_seed_sql.py            # Seed data generator script
+│   └── init_cloud_db.py                # Idempotent Railway/cloud MySQL bootstrap & telemetry seed
 ├── docs/
 │   ├── dfd.md                          # Data Flow Diagrams (Context, Level-1, Billing)
 │   ├── er_diagram.md                   # Entity-Relationship model & cardinality breakdown
@@ -200,6 +201,14 @@ Open **[http://localhost:5000](http://localhost:5000)** in your browser, click *
 python simulator/meter_simulator.py --live --interval 5
 ```
 
+### Live Cloud Deployment (Railway)
+VoltTrack is hosted live at **[https://volttrack-web-production.up.railway.app/](https://volttrack-web-production.up.railway.app/)** on Railway with a managed **MySQL 8** database (`mysql-volume` mounted at `/var/lib/mysql`) and a **Python 3.12 + Gunicorn** web service connected to `main`:
+
+- **Pre-Deploy Bootstrap:** `python database/init_cloud_db.py` (idempotent pure-Python MySQL initializer — applies `01`–`06` SQL files and seeds `102,480` hourly telemetry readings only if uninitialized, safely skipping resets on subsequent redeploys)
+- **Start Command:** `gunicorn -w 1 --threads 4 -b 0.0.0.0:$PORT "backend.app:create_app()"`
+- **Healthcheck Path:** `GET /api/health`
+- **Production Variables:** `DB_HOST` (`MYSQLHOST`), `DB_PORT` (`MYSQLPORT`), `DB_USER` (`MYSQLUSER`), `DB_PASS` (`MYSQLPASSWORD`), `DB_NAME=smartmeter`, `JWT_SECRET`, `SIMULATOR_API_KEY`, `FLASK_DEBUG=False`
+
 ---
 
 ## 7. Automated Testing & Verification
@@ -228,6 +237,7 @@ Run `database/08_index_benchmark.sql` in MySQL Workbench to compare range scan p
 
 | Method | Endpoint | Auth / Role | Description |
 | :--- | :--- | :--- | :--- |
+| `GET` | `/api/health` | Public | Verify Flask server and MySQL connectivity (`SELECT 1`) |
 | `POST` | `/api/auth/login` | Public | Authenticate credentials and issue JWT Bearer token |
 | `GET` | `/api/auth/me` | JWT | Return authenticated user claims and role metadata |
 | `GET` | `/api/customers` | `ADMIN`, `BILLING_OFFICER` | List/filter customers (`?search=`, `?category=`, `?area_id=`) |

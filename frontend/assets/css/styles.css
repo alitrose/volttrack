@@ -1,0 +1,262 @@
+/* VoltTrack: Crimson Noir Luxury Aesthetic (Matching Reference Design) */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+    --bg-black: #050507;
+    --card-black: #0E0F14;
+    --card-glass: rgba(16, 17, 24, 0.75);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-glow: rgba(255, 45, 85, 0.4);
+    
+    --crimson-glow: #FF2D55;
+    --crimson-bright: #FF3B30;
+    --coral-orange: #FF5E3A;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-black);
+    color: #F8FAFC;
+    overflow-x: hidden;
+}
+
+code, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #050507;
+}
+::-webkit-scrollbar-thumb {
+    background: #1C1D26;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #FF2D55;
+}
+
+/* Glassmorphism Cards */
+.crimson-card {
+    background: rgba(14, 15, 22, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.crimson-card:hover {
+    border-color: rgba(255, 45, 85, 0.35);
+    box-shadow: 0 10px 40px rgba(255, 45, 85, 0.08);
+}
+
+/* Glowing Crimson Buttons */
+.btn-crimson {
+    background: linear-gradient(135deg, #FF2D55 0%, #FF453A 50%, #FF5E3A 100%);
+    color: #FFFFFF;
+    box-shadow: 0 0 25px rgba(255, 45, 85, 0.45);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-crimson:hover {
+    box-shadow: 0 0 40px rgba(255, 45, 85, 0.75);
+    transform: translateY(-2px) scale(1.02);
+}
+
+.btn-glass-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+    transition: all 0.25s ease;
+}
+
+.btn-glass-pill:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+/* Ambient Radial Glows */
+.ambient-glow-crimson {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255, 45, 85, 0.18) 0%, rgba(255, 45, 85, 0) 70%);
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Pulses */
+.pulse-red-glow {
+    animation: pulse-red-anim 2s infinite;
+}
+@keyframes pulse-red-anim {
+    0% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.6); }
+    70% { box-shadow: 0 0 0 14px rgba(255, 45, 85, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0); }
+}
+
+/* Floating Jellyfish Animation */
+.floating-jellyfish {
+    animation: floatJellyfish 6s ease-in-out infinite;
+}
+@keyframes floatJellyfish {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-16px) rotate(1.5deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+
+/* Sliding Toolbar / Sidebar Animations */
+.sidebar-sliding {
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidebar-collapsed {
+    transform: translateX(-100%);
+}
+
+@media (min-width: 1024px) {
+    .sidebar-collapsed {
+        transform: translateX(0);
+        width: 76px !important;
+    }
+    .sidebar-collapsed .sidebar-label {
+        display: none;
+    }
+}
+
+.toolbar-item {
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.toolbar-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 3px;
+    height: 60%;
+    background: #FF2D55;
+    border-radius: 0 4px 4px 0;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 12px #FF2D55;
+}
+
+.toolbar-item:hover::before,
+.toolbar-item.active::before {
+    transform: translateY(-50%) scaleY(1);
+}
+
+/* Welcome Page Slide Transition */
+.welcome-screen {
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.welcome-screen.hide-welcome {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.96);
+    pointer-events: none;
+    display: none;
+}
+
+.login-screen {
+    transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-screen.hidden-login {
+    opacity: 0;
+    transform: translateY(50px) scale(0.96);
+    pointer-events: none;
+    display: none;
+}
+
+/* Toast Container */
+#toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+}
+
+.toast {
+    pointer-events: auto;
+    min-width: 280px;
+    max-width: 420px;
+    padding: 0.875rem 1.25rem;
+    border-radius: 1rem;
+    background: rgba(14, 15, 22, 0.95);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 45, 85, 0.3);
+    box-shadow: 0 20px 30px -5px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 45, 85, 0.25);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    animation: slideInToast 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInToast {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Floating Capsule Pill Toolbar (Reference UI Component) */
+.floating-pill-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    background: rgba(18, 19, 28, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 45, 85, 0.12);
+}
+
+.pill-item {
+    padding: 7px 18px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #94A3B8;
+    background: transparent;
+    border: 1px solid transparent;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pill-item:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.pill-item.active {
+    color: #FFFFFF;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.13);
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.pill-item.active .pill-dot {
+    background: #FF2D55;
+    box-shadow: 0 0 8px #FF2D55;
+}

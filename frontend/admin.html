@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrator Console | VoltTrack</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        noir: { 950: '#050507', 900: '#0E0F14', 850: '#14151D', 800: '#1A1C27' },
+                        crimson: { 500: '#FF3B30', 600: '#FF2D55', 700: '#E63946' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-noir-950 text-slate-100 min-h-screen flex flex-col selection:bg-crimson-600 selection:text-white relative overflow-x-hidden">
+
+    <!-- Ambient Crimson Background Glow -->
+    <div class="ambient-glow-crimson top-0 right-0 opacity-40"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-white/10 bg-noir-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <!-- Sidebar Slide Toggle Button -->
+            <button onclick="toggleSidebar()" class="p-2 rounded-2xl bg-white/5 hover:bg-white/10 text-crimson-500 border border-white/10 transition transform hover:scale-105 active:scale-95" title="Toggle Sidebar Toolbar">
+                <svg id="sidebar-icon" class="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+
+            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center shadow-[0_0_15px_rgba(255,45,85,0.6)]">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <div>
+                <span class="font-black text-lg text-white">VoltTrack</span>
+                <span class="text-xs text-crimson-500 font-bold ml-2">Administration Console</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <!-- Backup Database Button -->
+            <button id="btn-backup" onclick="triggerDatabaseBackup()"
+                class="btn-glass-pill text-xs text-slate-200 px-4 py-2 rounded-full border border-white/10 transition flex items-center gap-2 font-medium hover:border-crimson-500/50">
+                <svg class="w-3.5 h-3.5 text-crimson-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                </svg>
+                <span>Run mysqldump Backup</span>
+            </button>
+
+            <!-- User Pill -->
+            <div class="flex items-center gap-2 bg-noir-900 border border-white/10 px-4 py-1.5 rounded-full text-xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-green"></span>
+                <span id="nav-user-name" class="font-semibold text-slate-200">Admin</span>
+                <span class="text-slate-500">&bull;</span>
+                <span id="nav-user-role" class="text-crimson-500 font-bold">ADMIN</span>
+            </div>
+
+            <button id="btn-logout" class="text-xs bg-white/5 hover:bg-white/10 text-slate-300 px-3.5 py-1.5 rounded-full border border-white/10 transition">
+                Sign Out
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container with Animated Sliding Sidebar -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- Animated Sliding Toolbar / Sidebar -->
+        <aside id="main-sidebar" class="sidebar-sliding w-64 bg-noir-900/90 backdrop-blur-2xl border-r border-white/10 flex flex-col justify-between p-4 z-30 transition-all duration-300">
+            
+            <div class="space-y-6">
+                <div>
+                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-3 mb-2 sidebar-label">Telemetry & Tools</div>
+                    <nav class="space-y-1">
+                        <a href="#sec-overview" class="toolbar-item active flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold text-white bg-white/5 transition hover:bg-white/10">
+                            <svg class="w-4 h-4 text-crimson-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            <span class="sidebar-label">Grid Overview</span>
+                        </a>
+                        <a href="#sec-alerts" class="toolbar-item flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <svg class="w-4 h-4 text-red-500 shrink-0 pulse-red-glow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span class="sidebar-label">Real-time Alert Feed</span>
+                        </a>
+                        <a href="#sec-charts" class="toolbar-item flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            <span class="sidebar-label">Revenue & Substation</span>
+                        </a>
+                        <a href="#sec-theft" class="toolbar-item flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <svg class="w-4 h-4 text-orange-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            <span class="sidebar-label">Theft Suspects (LAG)</span>
+                        </a>
+                        <a href="#sec-tariffs" class="toolbar-item flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span class="sidebar-label">Tariff Slabs Editor</span>
+                        </a>
+                        <a href="#sec-audit" class="toolbar-item flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <svg class="w-4 h-4 text-purple-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span class="sidebar-label">Audit Log (Triggers)</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Role Switcher -->
+                <div class="pt-4 border-t border-white/10">
+                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-3 mb-2 sidebar-label">Switch Role</div>
+                    <div class="space-y-1">
+                        <a href="/customer.html" class="flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <span class="w-2 h-2 rounded-full bg-crimson-500 shrink-0"></span>
+                            <span class="sidebar-label">Consumer Portal</span>
+                        </a>
+                        <a href="/billing.html" class="flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
+                            <span class="sidebar-label">Billing Officer</span>
+                        </a>
+                        <a href="/technician.html" class="flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <span class="w-2 h-2 rounded-full bg-purple-400 shrink-0"></span>
+                            <span class="sidebar-label">Field Technician</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-white/10 text-[10px] text-slate-500 sidebar-label font-mono">
+                MySQL 8.0 &bull; InnoDB Engine
+            </div>
+
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-6 space-y-6 overflow-y-auto max-w-7xl mx-auto w-full">
+
+            <!-- 4 KPI Cards (Matching Exact Reference Card Styling) -->
+            <div id="sec-overview" class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                <div class="crimson-card p-5">
+                    <div class="flex items-center justify-between text-slate-400">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Consumers</span>
+                        <span class="p-2 rounded-full bg-white/5 text-crimson-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </span>
+                    </div>
+                    <div class="mt-3">
+                        <span id="admin-kpi-cust" class="text-3xl font-black text-white font-mono">--</span>
+                    </div>
+                    <div class="mt-2 text-[10px] text-slate-500">Domestic, Commercial & Industrial</div>
+                </div>
+
+                <div class="crimson-card p-5">
+                    <div class="flex items-center justify-between text-slate-400">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Smart Meters</span>
+                        <span class="p-2 rounded-full bg-white/5 text-rose-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                        </span>
+                    </div>
+                    <div class="mt-3">
+                        <span id="admin-kpi-meters" class="text-3xl font-black text-white font-mono">--</span>
+                    </div>
+                    <div class="mt-2 text-[10px] text-slate-500">Single & Three Phase Grids</div>
+                </div>
+
+                <div class="crimson-card p-5">
+                    <div class="flex items-center justify-between text-slate-400">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Open Incidents</span>
+                        <span class="p-2 rounded-full bg-white/5 text-crimson-500 pulse-red-glow">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </span>
+                    </div>
+                    <div class="mt-3">
+                        <span id="admin-kpi-alerts" class="text-3xl font-black text-crimson-500 font-mono">--</span>
+                    </div>
+                    <div class="mt-2 text-[10px] text-slate-500">Tamper, Outage & Voltage Sags</div>
+                </div>
+
+                <div class="crimson-card p-5">
+                    <div class="flex items-center justify-between text-slate-400">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Revenue</span>
+                        <span class="p-2 rounded-full bg-white/5 text-emerald-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </span>
+                    </div>
+                    <div class="mt-3">
+                        <span id="admin-kpi-rev" class="text-3xl font-black text-emerald-400 font-mono">--</span>
+                    </div>
+                    <div class="mt-2 text-[10px] text-slate-500">Transactions settled in MySQL</div>
+                </div>
+            </div>
+
+            <!-- Real-Time Alert Feed -->
+            <div id="sec-alerts" class="crimson-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-crimson-500 pulse-red-glow"></span>
+                        <h3 class="text-sm font-bold text-white tracking-wide">Live Grid Incident Feed (Auto-Refreshes every 10s)</h3>
+                    </div>
+                    <button onclick="loadLiveAlerts()" class="btn-glass-pill px-4 py-1.5 rounded-full text-xs text-slate-200">
+                        Refresh Feed
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto max-h-60 overflow-y-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="sticky top-0 bg-noir-950 text-slate-500 uppercase text-[10px] font-black tracking-widest border-b border-white/10">
+                            <tr>
+                                <th class="py-2.5 px-3">Alert #</th>
+                                <th class="py-2.5 px-3">Meter ID</th>
+                                <th class="py-2.5 px-3">Customer / Area</th>
+                                <th class="py-2.5 px-3">Type</th>
+                                <th class="py-2.5 px-3">Message</th>
+                                <th class="py-2.5 px-3">Raised At</th>
+                                <th class="py-2.5 px-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alerts-tbody" class="divide-y divide-white/5 text-slate-300 font-mono">
+                            <tr><td colspan="7" class="py-4 text-center text-slate-500">Checking alert telemetry...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div id="sec-charts" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="crimson-card p-6">
+                    <h3 class="text-sm font-bold text-white mb-1">Substation Revenue Breakdown</h3>
+                    <p class="text-xs text-slate-500 mb-4">Cumulative payments received per substation division</p>
+                    <div class="h-64">
+                        <canvas id="areaRevenueChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="crimson-card p-6">
+                    <h3 class="text-sm font-bold text-white mb-1">Monthly Billing Revenue Trend</h3>
+                    <p class="text-xs text-slate-500 mb-4">Historical monthly collection curve</p>
+                    <div class="h-64">
+                        <canvas id="monthlyRevChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top 10 Consumers & Theft Suspects (Side by Side) -->
+            <div id="sec-theft" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Top Consumers -->
+                <div class="crimson-card p-6">
+                    <h3 class="text-sm font-bold text-white mb-1">Top 10 Energy Consumers</h3>
+                    <p class="text-xs text-slate-500 mb-3">Highest load recorded in last 60 days</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-white/10 text-slate-500 font-mono text-[10px] uppercase">
+                                    <th class="pb-2">Consumer</th>
+                                    <th class="pb-2">Category</th>
+                                    <th class="pb-2">Area</th>
+                                    <th class="pb-2 text-right">Consumption</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top-consumers-tbody" class="divide-y divide-white/5 text-slate-300">
+                                <tr><td colspan="4" class="py-4 text-center text-slate-500">Loading top consumers...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Theft / Bypass Suspects -->
+                <div class="crimson-card p-6">
+                    <h3 class="text-sm font-bold text-crimson-500 mb-1 flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        Theft / Bypass Suspects (SQL Window LAG)
+                    </h3>
+                    <p class="text-xs text-slate-500 mb-3">Accounts with sudden drop &gt; 60% vs previous month</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs font-mono">
+                            <thead>
+                                <tr class="border-b border-white/10 text-slate-500 text-[10px] uppercase">
+                                    <th class="pb-2">Meter</th>
+                                    <th class="pb-2">Consumer</th>
+                                    <th class="pb-2">Area</th>
+                                    <th class="pb-2 text-right">Prev kWh</th>
+                                    <th class="pb-2 text-right">Curr kWh</th>
+                                    <th class="pb-2 text-right">Drop %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="theft-tbody" class="divide-y divide-white/5 text-slate-300">
+                                <tr><td colspan="6" class="py-4 text-center text-slate-500">Running anomaly detection algorithm...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tariff Slabs & System Audit Log Row -->
+            <div id="sec-tariffs" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="crimson-card p-6">
+                    <h3 class="text-sm font-bold text-white mb-1">Tariff Slabs Management</h3>
+                    <p class="text-xs text-slate-500 mb-3">Changes trigger automatic row logging into audit_log</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="border-b border-white/10 text-slate-500 font-mono text-[10px] uppercase">
+                                    <th class="pb-2">ID</th>
+                                    <th class="pb-2">Category</th>
+                                    <th class="pb-2">Slab (kWh)</th>
+                                    <th class="pb-2 text-right">Rate (₹)</th>
+                                    <th class="pb-2 text-right">Fixed (₹)</th>
+                                    <th class="pb-2 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tariffs-tbody" class="divide-y divide-white/5 text-slate-300">
+                                <tr><td colspan="6" class="py-4 text-center text-slate-500">Loading tariff rates...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="sec-audit" class="crimson-card p-6">
+                    <h3 class="text-sm font-bold text-white mb-1">Database Audit Trail (Triggers)</h3>
+                    <p class="text-xs text-slate-500 mb-3">Sensitive table modifications captured by trigger trg_tariff_audit</p>
+                    <div class="overflow-x-auto max-h-56 overflow-y-auto">
+                        <table class="w-full text-left text-[11px] font-mono">
+                            <thead class="sticky top-0 bg-noir-950 text-slate-500 border-b border-white/10 text-[10px] uppercase">
+                                <tr>
+                                    <th class="py-1 px-2">Log #</th>
+                                    <th class="py-1 px-2">Table</th>
+                                    <th class="py-1 px-2">Action</th>
+                                    <th class="py-1 px-2">Changed By</th>
+                                    <th class="py-1 px-2">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-tbody" class="divide-y divide-white/5 text-slate-300">
+                                <tr><td colspan="5" class="py-4 text-center text-slate-500">Reading audit log...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal: Edit Tariff -->
+    <div id="tariff-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+        <div class="crimson-card rounded-3xl max-w-sm w-full p-6 shadow-2xl">
+            <h3 class="text-base font-bold text-white">Adjust Tariff Slab</h3>
+            <p class="text-xs text-slate-400 mt-1">This update triggers the audit trigger.</p>
+
+            <form id="tariff-form" class="mt-4 space-y-3.5">
+                <input type="hidden" id="edit-tariff-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Category & Slab</label>
+                    <input type="text" id="edit-tariff-label" readonly class="w-full bg-noir-950 border border-white/10 rounded-2xl px-3 py-2 text-xs text-slate-300 font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Rate per Unit (₹)</label>
+                    <input type="number" step="0.01" id="edit-tariff-rate" required class="w-full bg-noir-950 border border-white/10 rounded-2xl px-3 py-2 text-xs text-white font-mono focus:border-crimson-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Fixed Charge (₹)</label>
+                    <input type="number" step="0.01" id="edit-tariff-fixed" required class="w-full bg-noir-950 border border-white/10 rounded-2xl px-3 py-2 text-xs text-white font-mono focus:border-crimson-500">
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeTariffModal()" class="px-4 py-2 rounded-full text-xs text-slate-400 bg-white/5 hover:bg-white/10">Cancel</button>
+                    <button type="submit" class="btn-crimson px-5 py-2 rounded-full text-xs font-bold transition">Save & Audit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script>
+        let areaChart = null;
+        let revChart = null;
+
+        let isSidebarCollapsed = false;
+        function toggleSidebar() {
+            const sidebar = document.getElementById("main-sidebar");
+            const icon = document.getElementById("sidebar-icon");
+            isSidebarCollapsed = !isSidebarCollapsed;
+            
+            if (isSidebarCollapsed) {
+                sidebar.classList.add("sidebar-collapsed");
+                icon.classList.add("rotate-180");
+            } else {
+                sidebar.classList.remove("sidebar-collapsed");
+                icon.classList.remove("rotate-180");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const user = requireRole(["ADMIN"]);
+            if (!user) return;
+
+            loadAdminDashboard();
+            setInterval(loadLiveAlerts, 10000);
+        });
+
+        async function loadAdminDashboard() {
+            try {
+                const kpisRes = await api.get("/analytics/kpis");
+                const k = kpisRes.data;
+                document.getElementById("admin-kpi-cust").textContent = k.total_customers;
+                document.getElementById("admin-kpi-meters").textContent = `${k.active_meters} / ${k.total_meters}`;
+                document.getElementById("admin-kpi-alerts").textContent = k.open_alerts;
+                document.getElementById("admin-kpi-rev").textContent = formatCurrency(k.total_collected);
+
+                loadLiveAlerts();
+
+                const revRes = await api.get("/analytics/revenue");
+                renderRevenueCharts(revRes.data);
+
+                const topRes = await api.get("/analytics/top-consumers");
+                renderTopConsumers(topRes.data);
+
+                const theftRes = await api.get("/analytics/theft-suspects");
+                renderTheftSuspects(theftRes.data);
+
+                loadTariffs();
+                loadAuditLogs();
+
+            } catch (err) {
+                showToast("Failed to load admin telemetry: " + err.message, "error");
+            }
+        }
+
+        async function loadLiveAlerts() {
+            try {
+                const res = await api.get("/alerts?resolved=false");
+                const tbody = document.getElementById("alerts-tbody");
+                const list = res.data;
+
+                if (!list || list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-emerald-400">All systems normal. No active alerts.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = list.map(a => {
+                    const badgeColor = a.type === 'OUTAGE' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                                       a.type === 'TAMPER' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                                       a.type === 'HIGH_USAGE' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
+                                       'bg-rose-500/20 text-rose-400 border-rose-500/30';
+                    return `
+                        <tr class="hover:bg-white/5 transition">
+                            <td class="py-2.5 px-3 text-slate-500">#${a.alert_id}</td>
+                            <td class="py-2.5 px-3 text-crimson-500 font-bold">MTR-${String(a.meter_id).padStart(3, '0')}</td>
+                            <td class="py-2.5 px-3 font-medium text-white">${a.customer_name || 'Grid Sector'} <span class="text-slate-500 text-[10px]">(${a.area_name || 'System'})</span></td>
+                            <td class="py-2.5 px-3">
+                                <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${badgeColor}">
+                                    ${a.type}
+                                </span>
+                            </td>
+                            <td class="py-2.5 px-3 text-slate-300 max-w-xs truncate">${a.message}</td>
+                            <td class="py-2.5 px-3 text-slate-500 text-[11px]">${formatDateTime(a.raised_at)}</td>
+                            <td class="py-2.5 px-3 text-center">
+                                <button onclick="resolveAlert(${a.alert_id})" class="btn-glass-pill px-3 py-1 rounded-full text-[11px] font-bold text-slate-200 hover:text-white">
+                                    Resolve
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error("Alert feed error:", err);
+            }
+        }
+
+        async function resolveAlert(id) {
+            try {
+                await api.patch(`/alerts/${id}/resolve`);
+                showToast(`Alert #${id} marked as resolved.`, "success");
+                loadLiveAlerts();
+                loadAdminDashboard();
+            } catch (err) {
+                showToast(err.message, "error");
+            }
+        }
+
+        function renderRevenueCharts(data) {
+            const areaCtx = document.getElementById("areaRevenueChart").getContext("2d");
+            if (areaChart) areaChart.destroy();
+            areaChart = new Chart(areaCtx, {
+                type: 'bar',
+                data: {
+                    labels: data.by_area.map(d => d.area_name),
+                    datasets: [{
+                        label: 'Collected Revenue (₹)',
+                        data: data.by_area.map(d => d.total_revenue),
+                        backgroundColor: 'rgba(255, 45, 85, 0.65)',
+                        borderColor: '#FF2D55',
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } }
+                    }
+                }
+            });
+
+            const revCtx = document.getElementById("monthlyRevChart").getContext("2d");
+            if (revChart) revChart.destroy();
+            revChart = new Chart(revCtx, {
+                type: 'line',
+                data: {
+                    labels: data.monthly.map(d => d.month),
+                    datasets: [{
+                        label: 'Monthly Trend (₹)',
+                        data: data.monthly.map(d => d.revenue),
+                        borderColor: '#FF3B30',
+                        backgroundColor: 'rgba(255, 59, 48, 0.1)',
+                        fill: true,
+                        tension: 0.35,
+                        pointBackgroundColor: '#FF3B30'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } }
+                    }
+                }
+            });
+        }
+
+        function renderTopConsumers(data) {
+            const tbody = document.getElementById("top-consumers-tbody");
+            tbody.innerHTML = data.map(c => `
+                <tr class="hover:bg-white/5 transition">
+                    <td class="py-2.5 font-medium text-white">${c.customer_name}</td>
+                    <td class="py-2.5 text-slate-500 text-xs">${c.category}</td>
+                    <td class="py-2.5 text-slate-400 text-xs">${c.area_name}</td>
+                    <td class="py-2.5 text-right font-mono text-crimson-500 font-black">${c.total_kwh} kWh</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderTheftSuspects(data) {
+            const tbody = document.getElementById("theft-tbody");
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-500">No anomalous drops detected in recent cycles.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = data.map(t => `
+                <tr class="hover:bg-red-500/10 transition">
+                    <td class="py-2.5 text-crimson-500 font-bold">#${t.meter_id}</td>
+                    <td class="py-2.5 font-medium text-white">${t.customer_name}</td>
+                    <td class="py-2.5 text-slate-400">${t.area_name}</td>
+                    <td class="py-2.5 text-right text-slate-500">${t.prev_month_kwh}</td>
+                    <td class="py-2.5 text-right text-slate-300">${t.monthly_kwh}</td>
+                    <td class="py-2.5 text-right text-red-500 font-black">-${t.drop_percentage}%</td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadTariffs() {
+            const res = await api.get("/tariffs");
+            const tbody = document.getElementById("tariffs-tbody");
+            tbody.innerHTML = res.data.map(t => `
+                <tr class="hover:bg-white/5 transition">
+                    <td class="py-2.5 font-mono text-slate-500">#${t.tariff_id}</td>
+                    <td class="py-2.5 font-medium text-white">${t.category}</td>
+                    <td class="py-2.5 text-slate-400 text-xs">${t.slab_from} - ${t.slab_to > 90000 ? 'Above' : t.slab_to}</td>
+                    <td class="py-2.5 text-right font-mono text-crimson-500 font-bold">₹${t.rate_per_unit}</td>
+                    <td class="py-2.5 text-right font-mono text-slate-300">₹${t.fixed_charge}</td>
+                    <td class="py-2.5 text-center">
+                        <button onclick="openTariffModal(${t.tariff_id}, '${t.category}', ${t.slab_from}, ${t.slab_to}, ${t.rate_per_unit}, ${t.fixed_charge})"
+                            class="btn-glass-pill px-3 py-1 rounded-full text-[11px] text-slate-200 hover:text-white">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openTariffModal(id, cat, sf, st, rate, fixed) {
+            document.getElementById("edit-tariff-id").value = id;
+            document.getElementById("edit-tariff-label").value = `${cat} (${sf} - ${st > 90000 ? 'Above' : st} kWh)`;
+            document.getElementById("edit-tariff-rate").value = rate;
+            document.getElementById("edit-tariff-fixed").value = fixed;
+            document.getElementById("tariff-modal").classList.remove("hidden");
+        }
+
+        function closeTariffModal() {
+            document.getElementById("tariff-modal").classList.add("hidden");
+        }
+
+        document.getElementById("tariff-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const id = document.getElementById("edit-tariff-id").value;
+            const rate = document.getElementById("edit-tariff-rate").value;
+            const fixed = document.getElementById("edit-tariff-fixed").value;
+
+            try {
+                const res = await api.put(`/tariffs/${id}`, { rate_per_unit: rate, fixed_charge: fixed });
+                showToast(res.data.message, "success");
+                closeTariffModal();
+                loadTariffs();
+                loadAuditLogs();
+            } catch (err) {
+                showToast(err.message, "error");
+            }
+        });
+
+        async function loadAuditLogs() {
+            try {
+                const res = await api.get("/audit?limit=15");
+                const tbody = document.getElementById("audit-tbody");
+                tbody.innerHTML = res.data.map(l => `
+                    <tr class="hover:bg-white/5 transition">
+                        <td class="py-1.5 px-2 text-slate-500">#${l.log_id}</td>
+                        <td class="py-1.5 px-2 text-crimson-500 font-semibold">${l.table_name}</td>
+                        <td class="py-1.5 px-2 text-amber-400 font-semibold">${l.action}</td>
+                        <td class="py-1.5 px-2 text-slate-300">${l.changed_by}</td>
+                        <td class="py-1.5 px-2 text-slate-500">${formatDateTime(l.changed_at)}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("Audit log load error:", err);
+            }
+        }
+
+        async function triggerDatabaseBackup() {
+            const btn = document.getElementById("btn-backup");
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin h-3.5 w-3.5 text-crimson-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Dumping snapshot...</span>`;
+
+            try {
+                const res = await api.post("/admin/backup", {});
+                showToast(`Snapshot created: ${res.data.backup_file} (${res.data.file_size_kb} KB)`, "success");
+            } catch (err) {
+                showToast("Backup failed: " + err.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg class="w-3.5 h-3.5 text-crimson-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg> <span>Run mysqldump Backup</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

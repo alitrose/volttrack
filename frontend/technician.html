@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Technician Console | VoltTrack</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        noir: { 950: '#050507', 900: '#0E0F14', 850: '#14151D', 800: '#1A1C27' },
+                        crimson: { 500: '#FF3B30', 600: '#FF2D55', 700: '#E63946' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-noir-950 text-slate-100 min-h-screen flex flex-col selection:bg-crimson-600 selection:text-white relative overflow-x-hidden">
+
+    <!-- Ambient Crimson Background Glow -->
+    <div class="ambient-glow-crimson top-0 right-0 opacity-40"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-white/10 bg-noir-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <button onclick="toggleSidebar()" class="p-2 rounded-2xl bg-white/5 hover:bg-white/10 text-crimson-500 border border-white/10 transition transform hover:scale-105 active:scale-95" title="Toggle Sidebar Toolbar">
+                <svg id="sidebar-icon" class="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+
+            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center shadow-[0_0_15px_rgba(255,45,85,0.6)]">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </div>
+            <div>
+                <span class="font-black text-lg text-white">VoltTrack</span>
+                <span class="text-xs text-crimson-500 font-bold ml-2">Field Operations & Maintenance</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 bg-noir-900 border border-white/10 px-4 py-1.5 rounded-full text-xs">
+                <span class="w-2 h-2 rounded-full bg-crimson-500 pulse-red-glow"></span>
+                <span id="nav-user-name" class="font-semibold text-slate-200">Technician</span>
+                <span class="text-slate-500">&bull;</span>
+                <span id="nav-user-role" class="text-crimson-500 font-bold">TECHNICIAN</span>
+            </div>
+            <button id="btn-logout" class="text-xs bg-white/5 hover:bg-white/10 text-slate-300 px-3.5 py-1.5 rounded-full border border-white/10 transition">
+                Sign Out
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container with Animated Sliding Sidebar -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- Animated Sliding Toolbar / Sidebar -->
+        <aside id="main-sidebar" class="sidebar-sliding w-64 bg-noir-900/90 backdrop-blur-2xl border-r border-white/10 flex flex-col justify-between p-4 z-30 transition-all duration-300">
+            <div class="space-y-6">
+                <div>
+                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-3 mb-2 sidebar-label">Field Station</div>
+                    <nav class="space-y-1">
+                        <a href="#sec-kpis" class="toolbar-item active flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold text-white bg-white/5 transition hover:bg-white/10">
+                            <svg class="w-4 h-4 text-crimson-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            <span class="sidebar-label">Operations Summary</span>
+                        </a>
+                        <a href="#sec-tickets" class="toolbar-item flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            <span class="sidebar-label">Assigned Tickets</span>
+                        </a>
+                        <a href="#sec-fleet" class="toolbar-item flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                            <span class="sidebar-label">Smart Meter Fleet</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="pt-4 border-t border-white/10">
+                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-3 mb-2 sidebar-label">Switch Role</div>
+                    <div class="space-y-1">
+                        <a href="/admin.html" class="flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <span class="w-2 h-2 rounded-full bg-crimson-500 shrink-0"></span>
+                            <span class="sidebar-label">Admin Console</span>
+                        </a>
+                        <a href="/customer.html" class="flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <span class="w-2 h-2 rounded-full bg-rose-400 shrink-0"></span>
+                            <span class="sidebar-label">Consumer Portal</span>
+                        </a>
+                        <a href="/billing.html" class="flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
+                            <span class="sidebar-label">Billing Officer</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-white/10 text-[10px] text-slate-500 sidebar-label font-mono">
+                VoltTrack &bull; Field Operations
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-6 space-y-6 overflow-y-auto max-w-7xl mx-auto w-full">
+
+            <!-- KPI Summary Cards -->
+            <div id="sec-kpis" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="crimson-card p-6">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Assigned Service Tickets</span>
+                    <div class="mt-2 text-3xl font-black text-white font-mono" id="tech-kpi-complaints">--</div>
+                    <p class="text-xs text-slate-500 mt-1">Open & Assigned customer complaints</p>
+                </div>
+                <div class="crimson-card p-6">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Faulty / Degraded Meters</span>
+                    <div class="mt-2 text-3xl font-black text-amber-400 font-mono" id="tech-kpi-faulty">--</div>
+                    <p class="text-xs text-slate-500 mt-1">Requires hardware inspection or recalibration</p>
+                </div>
+                <div class="crimson-card p-6">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Unresolved Grid Alerts</span>
+                    <div class="mt-2 text-3xl font-black text-crimson-500 font-mono" id="tech-kpi-alerts">--</div>
+                    <p class="text-xs text-slate-500 mt-1">Tamper bypass, outages & voltage sags</p>
+                </div>
+            </div>
+
+            <!-- Field Service Tickets / Complaints -->
+            <div id="sec-tickets" class="crimson-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Assigned Service Tickets & Repairs</h3>
+                        <p class="text-xs text-slate-500">Manage triage and update resolution status</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="border-b border-white/10 text-slate-500 font-mono text-[10px] uppercase bg-noir-950/60">
+                            <tr>
+                                <th class="py-2.5 px-3">Ticket #</th>
+                                <th class="py-2.5 px-3">Consumer</th>
+                                <th class="py-2.5 px-3">Phone</th>
+                                <th class="py-2.5 px-3">Area</th>
+                                <th class="py-2.5 px-3">Type</th>
+                                <th class="py-2.5 px-3">Description</th>
+                                <th class="py-2.5 px-3">Status</th>
+                                <th class="py-2.5 px-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tech-complaints-tbody" class="divide-y divide-white/5 text-slate-300 font-mono">
+                            <tr><td colspan="8" class="py-4 text-center text-slate-500">Loading assigned tickets...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Meter Health & Status Toggler -->
+            <div id="sec-fleet" class="crimson-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Smart Meter Fleet Status</h3>
+                        <p class="text-xs text-slate-500">Mark meters as ACTIVE, FAULTY, or DISCONNECTED during field visits</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="meter-search" placeholder="Filter by Meter # or Location..."
+                            class="bg-noir-950 border border-white/10 rounded-full px-4 py-1.5 text-xs text-white placeholder-slate-500 focus:border-crimson-500">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto max-h-72 overflow-y-auto">
+                    <table class="w-full text-left text-xs border-collapse font-mono">
+                        <thead class="sticky top-0 bg-noir-950 text-slate-500 border-b border-white/10 text-[10px] uppercase">
+                            <tr>
+                                <th class="py-2 px-3">Meter ID</th>
+                                <th class="py-2 px-3">Type</th>
+                                <th class="py-2 px-3">Consumer</th>
+                                <th class="py-2 px-3">Substation Area</th>
+                                <th class="py-2 px-3">Physical Location</th>
+                                <th class="py-2 px-3">Status</th>
+                                <th class="py-2 px-3 text-center">Update State</th>
+                            </tr>
+                        </thead>
+                        <tbody id="meters-tbody" class="divide-y divide-white/5 text-slate-300">
+                            <tr><td colspan="7" class="py-4 text-center text-slate-500">Loading smart meters...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script>
+        let isSidebarCollapsed = false;
+        function toggleSidebar() {
+            const sidebar = document.getElementById("main-sidebar");
+            const icon = document.getElementById("sidebar-icon");
+            isSidebarCollapsed = !isSidebarCollapsed;
+            
+            if (isSidebarCollapsed) {
+                sidebar.classList.add("sidebar-collapsed");
+                icon.classList.add("rotate-180");
+            } else {
+                sidebar.classList.remove("sidebar-collapsed");
+                icon.classList.remove("rotate-180");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const user = requireRole(["TECHNICIAN", "ADMIN"]);
+            if (!user) return;
+
+            loadTechnicianDashboard();
+            document.getElementById("meter-search").addEventListener("input", filterMeters);
+        });
+
+        let allMeters = [];
+
+        async function loadTechnicianDashboard() {
+            try {
+                const compRes = await api.get("/complaints");
+                renderComplaints(compRes.data);
+
+                const metersRes = await api.get("/meters");
+                allMeters = metersRes.data;
+                renderMeters(allMeters);
+
+                const alertsRes = await api.get("/alerts?resolved=false");
+                const alerts = alertsRes.data;
+
+                const openComp = compRes.data.filter(c => c.status !== 'RESOLVED').length;
+                const faultyM = allMeters.filter(m => m.status === 'FAULTY').length;
+                document.getElementById("tech-kpi-complaints").textContent = openComp;
+                document.getElementById("tech-kpi-faulty").textContent = faultyM;
+                document.getElementById("tech-kpi-alerts").textContent = alerts.length;
+
+            } catch (err) {
+                showToast("Failed to load technician console: " + err.message, "error");
+            }
+        }
+
+        function renderComplaints(list) {
+            const tbody = document.getElementById("tech-complaints-tbody");
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-4 text-center text-slate-500">No active service tickets.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(c => `
+                <tr class="hover:bg-white/5 transition">
+                    <td class="py-2.5 px-3 font-mono font-bold text-white">#${c.complaint_id}</td>
+                    <td class="py-2.5 px-3 text-slate-200 font-medium">${c.customer_name}</td>
+                    <td class="py-2.5 px-3 font-mono text-slate-500">${c.customer_phone || '---'}</td>
+                    <td class="py-2.5 px-3 text-slate-400">${c.area_name || 'Grid'}</td>
+                    <td class="py-2.5 px-3"><span class="btn-glass-pill px-2.5 py-0.5 rounded-full text-[10px] font-bold text-amber-400">${c.type}</span></td>
+                    <td class="py-2.5 px-3 text-slate-300 max-w-xs truncate">${c.description}</td>
+                    <td class="py-2.5 px-3">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${c.status === 'RESOLVED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
+                            ${c.status}
+                        </span>
+                    </td>
+                    <td class="py-2.5 px-3 text-center space-x-1">
+                        ${c.status !== 'RESOLVED' ? `
+                            <button onclick="setComplaintStatus(${c.complaint_id}, 'RESOLVED')"
+                                class="btn-crimson px-3 py-1 rounded-full text-[11px] font-bold shadow-sm">
+                                Resolve
+                            </button>
+                        ` : '<span class="text-slate-500 text-[11px]">Completed</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function setComplaintStatus(id, newStatus) {
+            try {
+                await api.patch(`/complaints/${id}`, { status: newStatus });
+                showToast(`Ticket #${id} marked as ${newStatus}.`, "success");
+                loadTechnicianDashboard();
+            } catch (err) {
+                showToast(err.message, "error");
+            }
+        }
+
+        function renderMeters(list) {
+            const tbody = document.getElementById("meters-tbody");
+            tbody.innerHTML = list.map(m => {
+                let badge = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                if (m.status === "FAULTY") badge = "bg-red-500/20 text-red-400 border border-red-500/30";
+                else if (m.status === "DISCONNECTED") badge = "bg-slate-700 text-slate-400";
+
+                return `
+                    <tr class="hover:bg-white/5 transition">
+                        <td class="py-2 px-3 font-mono font-bold text-crimson-500">#${m.meter_id}</td>
+                        <td class="py-2 px-3 text-slate-400 text-[11px]">${m.meter_type}</td>
+                        <td class="py-2 px-3 text-slate-200 font-medium">${m.customer_name}</td>
+                        <td class="py-2 px-3 text-slate-400">${m.area_name}</td>
+                        <td class="py-2 px-3 text-slate-500 truncate max-w-xs">${m.location || 'N/A'}</td>
+                        <td class="py-2 px-3"><span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badge}">${m.status}</span></td>
+                        <td class="py-2 px-3 text-center space-x-1">
+                            <select onchange="updateMeterStatus(${m.meter_id}, this.value)"
+                                class="bg-noir-950 border border-white/10 rounded-full px-3 py-1 text-[11px] text-slate-300 focus:border-crimson-500">
+                                <option value="">Action...</option>
+                                <option value="ACTIVE" ${m.status === 'ACTIVE' ? 'disabled' : ''}>Set Active</option>
+                                <option value="FAULTY" ${m.status === 'FAULTY' ? 'disabled' : ''}>Set Faulty</option>
+                                <option value="DISCONNECTED" ${m.status === 'DISCONNECTED' ? 'disabled' : ''}>Disconnect</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterMeters() {
+            const query = document.getElementById("meter-search").value.toLowerCase();
+            const filtered = allMeters.filter(m => 
+                String(m.meter_id).includes(query) || 
+                (m.customer_name && m.customer_name.toLowerCase().includes(query)) ||
+                (m.location && m.location.toLowerCase().includes(query))
+            );
+            renderMeters(filtered);
+        }
+
+        async function updateMeterStatus(meterId, newStatus) {
+            if (!newStatus) return;
+            try {
+                await api.patch(`/meters/${meterId}/status`, { status: newStatus });
+                showToast(`Meter #${meterId} status updated to ${newStatus}.`, "success");
+                loadTechnicianDashboard();
+            } catch (err) {
+                showToast(err.message, "error");
+            }
+        }
+    </script>
+</body>
+</html>

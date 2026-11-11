@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoltTrack | Smart Meter Data Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        noir: { 950: '#050507', 900: '#0E0F14', 850: '#14151D', 800: '#1A1C27' },
+                        crimson: { 500: '#FF3B30', 600: '#FF2D55', 700: '#E63946' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-noir-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-crimson-600 selection:text-white relative overflow-x-hidden">
+
+    <!-- Ambient Crimson Background Glow -->
+    <div class="ambient-glow-crimson top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30"></div>
+
+    <!-- Top Minimal Bar -->
+    <header class="relative z-30 max-w-6xl w-full mx-auto px-6 py-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center shadow-[0_0_15px_rgba(255,45,85,0.6)]">
+                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <span class="text-xl font-black tracking-tight text-white">VoltTrack</span>
+        </div>
+
+        <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-slate-300">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-green"></span>
+            <span>MySQL 8.0 &bull; Online</span>
+        </div>
+    </header>
+
+    <!-- Main Content Area: Welcome & Login States -->
+    <main class="relative z-20 flex-1 flex flex-col items-center justify-center px-4 py-8 max-w-4xl w-full mx-auto my-auto">
+
+        <!-- ========================================== -->
+        <!-- STATE 1: WELCOME TO VOLTTRACK SCREEN       -->
+        <!-- ========================================== -->
+        <section id="welcome-section" class="welcome-screen w-full flex flex-col items-center text-center space-y-8 my-auto">
+            
+            <!-- Smart Meter Glowing Power Core Visual -->
+            <div class="relative w-72 sm:w-80 mx-auto">
+                <img src="/assets/images/smart_meter_hero.jpg" 
+                    alt="VoltTrack Smart Meter Reactor" 
+                    class="floating-jellyfish w-full h-auto rounded-3xl border border-white/10 shadow-[0_0_60px_rgba(255,45,85,0.35)] object-cover">
+                <div class="absolute inset-0 rounded-3xl bg-gradient-to-t from-noir-950/80 via-transparent to-transparent pointer-events-none"></div>
+            </div>
+
+            <!-- Welcome Headings -->
+            <div class="space-y-3 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-crimson-500 font-mono">
+                    <span class="w-1.5 h-1.5 rounded-full bg-crimson-500 pulse-red-glow"></span>
+                    <span>SMART METER DATA MANAGEMENT SYSTEM</span>
+                </div>
+
+                <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight">
+                    Welcome to <span class="bg-gradient-to-r from-red-500 via-rose-400 to-orange-400 bg-clip-text text-transparent">VoltTrack</span>
+                </h1>
+
+                <p class="text-sm sm:text-base text-slate-400 leading-relaxed max-w-lg mx-auto">
+                    Real-time smart grid telemetry, progressive slab tariff calculations, automated tamper triggers, and ACID-safe billing.
+                </p>
+            </div>
+
+            <!-- Quick Telemetry Pillars -->
+            <div class="flex flex-wrap items-center justify-center gap-2 text-xs font-mono text-slate-400">
+                <span class="px-3 py-1 rounded-full bg-white/5 border border-white/10">102,485+ Readings</span>
+                <span class="px-3 py-1 rounded-full bg-white/5 border border-white/10">1.36 ms Index Scan</span>
+                <span class="px-3 py-1 rounded-full bg-white/5 border border-white/10">4 Auto Triggers</span>
+                <span class="px-3 py-1 rounded-full bg-white/5 border border-white/10">100% ACID Safe</span>
+            </div>
+
+            <!-- THE BIG "CLICK TO CONTINUE" BUTTON -->
+            <div class="pt-4">
+                <button onclick="showLoginScreen()" 
+                    class="btn-crimson font-black text-sm px-10 py-4 rounded-full flex items-center gap-3 shadow-[0_0_35px_rgba(255,45,85,0.6)] transform hover:scale-105 active:scale-95 transition-all duration-300">
+                    <span>Click to Continue</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </button>
+            </div>
+
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- STATE 2: SIGN IN & DEMO ROLES (AFTER CLICK)-->
+        <!-- ========================================== -->
+        <section id="login-section" class="login-screen hidden-login w-full max-w-md mx-auto my-auto space-y-4">
+            
+            <!-- Back Button -->
+            <button onclick="showWelcomeScreen()" class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-crimson-500 transition font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                <span>Back to Welcome</span>
+            </button>
+
+            <div class="crimson-card rounded-3xl p-8 relative overflow-hidden shadow-2xl border border-white/10">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-rose-500 to-orange-500"></div>
+
+                <div class="mb-6">
+                    <h2 class="text-2xl font-black text-white tracking-tight">Portal Authentication</h2>
+                    <p class="text-xs text-slate-400 mt-1">Sign in with role credentials or choose a quick demo account.</p>
+                </div>
+
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Username</label>
+                        <input type="text" id="username" required
+                            class="w-full bg-noir-950 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-crimson-500 font-mono"
+                            placeholder="Enter username (e.g. admin)">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Password</label>
+                        <input type="password" id="password" required
+                            class="w-full bg-noir-950 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-crimson-500 font-mono"
+                            placeholder="Enter your password">
+                    </div>
+
+                    <div id="login-error" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl"></div>
+
+                    <button type="submit" id="login-btn"
+                        class="w-full btn-crimson font-bold py-3.5 px-4 rounded-full text-xs shadow-lg transition flex items-center justify-center gap-2">
+                        <span>Sign In to Dashboard</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </button>
+                </form>
+
+                <!-- One-Click Demo Role Accounts -->
+                <div class="mt-8 pt-6 border-t border-white/10">
+                    <p class="text-xs font-semibold text-slate-300 mb-3 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-crimson-500"></span>
+                        One-Click Demo Roles:
+                    </p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <button type="button" onclick="fillCreds('admin', 'admin123')"
+                            class="bg-noir-950 hover:bg-noir-850 border border-white/10 text-slate-300 p-3 rounded-2xl text-left transition group">
+                            <span class="block font-bold text-crimson-500 group-hover:text-red-400">System Admin</span>
+                            <span class="text-slate-500 text-[10px]">admin / admin123</span>
+                        </button>
+                        <button type="button" onclick="fillCreds('customer', 'Volt@123')"
+                            class="bg-noir-950 hover:bg-noir-850 border border-white/10 text-slate-300 p-3 rounded-2xl text-left transition group">
+                            <span class="block font-bold text-rose-400 group-hover:text-rose-300">Consumer</span>
+                            <span class="text-slate-500 text-[10px]">customer / Volt@123</span>
+                        </button>
+                        <button type="button" onclick="fillCreds('billing', 'Volt@123')"
+                            class="bg-noir-950 hover:bg-noir-850 border border-white/10 text-slate-300 p-3 rounded-2xl text-left transition group">
+                            <span class="block font-bold text-amber-400 group-hover:text-amber-300">Billing Officer</span>
+                            <span class="text-slate-500 text-[10px]">billing / Volt@123</span>
+                        </button>
+                        <button type="button" onclick="fillCreds('technician', 'Volt@123')"
+                            class="bg-noir-950 hover:bg-noir-850 border border-white/10 text-slate-300 p-3 rounded-2xl text-left transition group">
+                            <span class="block font-bold text-purple-400 group-hover:text-purple-300">Technician</span>
+                            <span class="text-slate-500 text-[10px]">technician / Volt@123</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="relative z-30 border-t border-white/5 py-4 text-center text-xs text-slate-600">
+        VoltTrack Smart Meter Management System &middot; MySQL 8.0 (InnoDB) &middot; Python Flask REST API &middot; JWT RBAC
+    </footer>
+
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script>
+        function showLoginScreen() {
+            const welcome = document.getElementById("welcome-section");
+            const login = document.getElementById("login-section");
+            
+            welcome.classList.add("hide-welcome");
+            setTimeout(() => {
+                login.style.display = "block";
+                setTimeout(() => {
+                    login.classList.remove("hidden-login");
+                }, 50);
+            }, 300);
+        }
+
+        function showWelcomeScreen() {
+            const welcome = document.getElementById("welcome-section");
+            const login = document.getElementById("login-section");
+            
+            login.classList.add("hidden-login");
+            setTimeout(() => {
+                login.style.display = "none";
+                welcome.style.display = "flex";
+                setTimeout(() => {
+                    welcome.classList.remove("hide-welcome");
+                }, 50);
+            }, 300);
+        }
+
+        function fillCreds(u, p) {
+            document.getElementById('username').value = u;
+            document.getElementById('password').value = p;
+        }
+
+        // Auto redirect if already signed in
+        document.addEventListener("DOMContentLoaded", () => {
+            const user = getUser();
+            const token = getToken();
+            if (user && token) {
+                redirectToDashboard(user.role);
+            }
+        });
+
+        document.getElementById("login-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const errBox = document.getElementById("login-error");
+            errBox.classList.add("hidden");
+            
+            const btn = document.getElementById("login-btn");
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Authenticating...</span>`;
+
+            try {
+                const res = await api.post("/auth/login", {
+                    username: document.getElementById("username").value.trim(),
+                    password: document.getElementById("password").value
+                });
+
+                setSession(res.data.token, res.data.user);
+                showToast(`Welcome back, ${res.data.user.display_name}!`, "success");
+                setTimeout(() => {
+                    redirectToDashboard(res.data.user.role);
+                }, 500);
+            } catch (err) {
+                errBox.textContent = err.message || "Invalid credentials. Please verify your login details.";
+                errBox.classList.remove("hidden");
+                btn.disabled = false;
+                btn.innerHTML = `<span>Sign In to Dashboard</span> <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>`;
+            }
+        });
+    </script>
+</body>
+</html>

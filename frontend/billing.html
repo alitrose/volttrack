@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Operations Console | VoltTrack</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        noir: { 950: '#050507', 900: '#0E0F14', 850: '#14151D', 800: '#1A1C27' },
+                        crimson: { 500: '#FF3B30', 600: '#FF2D55', 700: '#E63946' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-noir-950 text-slate-100 min-h-screen flex flex-col selection:bg-crimson-600 selection:text-white relative overflow-x-hidden">
+
+    <!-- Ambient Crimson Background Glow -->
+    <div class="ambient-glow-crimson top-0 right-0 opacity-40"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-white/10 bg-noir-900/80 backdrop-blur-xl sticky top-0 z-40 px-6 py-3.5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <button onclick="toggleSidebar()" class="p-2 rounded-2xl bg-white/5 hover:bg-white/10 text-crimson-500 border border-white/10 transition transform hover:scale-105 active:scale-95" title="Toggle Sidebar Toolbar">
+                <svg id="sidebar-icon" class="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+
+            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center shadow-[0_0_15px_rgba(255,45,85,0.6)]">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <div>
+                <span class="font-black text-lg text-white">VoltTrack</span>
+                <span class="text-xs text-crimson-500 font-bold ml-2">Revenue & Billing Control</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 bg-noir-900 border border-white/10 px-4 py-1.5 rounded-full text-xs">
+                <span class="w-2 h-2 rounded-full bg-crimson-500 pulse-red-glow"></span>
+                <span id="nav-user-name" class="font-semibold text-slate-200">Billing Officer</span>
+                <span class="text-slate-500">&bull;</span>
+                <span id="nav-user-role" class="text-crimson-500 font-bold">BILLING_OFFICER</span>
+            </div>
+            <button id="btn-logout" class="text-xs bg-white/5 hover:bg-white/10 text-slate-300 px-3.5 py-1.5 rounded-full border border-white/10 transition">
+                Sign Out
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container with Animated Sliding Sidebar -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- Animated Sliding Toolbar / Sidebar -->
+        <aside id="main-sidebar" class="sidebar-sliding w-64 bg-noir-900/90 backdrop-blur-2xl border-r border-white/10 flex flex-col justify-between p-4 z-30 transition-all duration-300">
+            <div class="space-y-6">
+                <div>
+                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-3 mb-2 sidebar-label">Billing Ops</div>
+                    <nav class="space-y-1">
+                        <a href="#sec-batch" class="toolbar-item active flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold text-white bg-white/5 transition hover:bg-white/10">
+                            <svg class="w-4 h-4 text-crimson-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            <span class="sidebar-label">Batch Run (Cursor)</span>
+                        </a>
+                        <a href="#sec-invoices" class="toolbar-item flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span class="sidebar-label">Accounts Receivable</span>
+                        </a>
+                        <a href="#sec-areas" class="toolbar-item flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                            <span class="sidebar-label">Substation Revenue</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="pt-4 border-t border-white/10">
+                    <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest px-3 mb-2 sidebar-label">Switch Role</div>
+                    <div class="space-y-1">
+                        <a href="/admin.html" class="flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <span class="w-2 h-2 rounded-full bg-crimson-500 shrink-0"></span>
+                            <span class="sidebar-label">Admin Console</span>
+                        </a>
+                        <a href="/customer.html" class="flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <span class="w-2 h-2 rounded-full bg-rose-400 shrink-0"></span>
+                            <span class="sidebar-label">Consumer Portal</span>
+                        </a>
+                        <a href="/technician.html" class="flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs text-slate-400 hover:text-white hover:bg-white/5 transition">
+                            <span class="w-2 h-2 rounded-full bg-purple-400 shrink-0"></span>
+                            <span class="sidebar-label">Technician</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-4 border-t border-white/10 text-[10px] text-slate-500 sidebar-label font-mono">
+                VoltTrack &bull; Billing Center
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-6 space-y-6 overflow-y-auto max-w-7xl mx-auto w-full">
+
+            <!-- Batch Billing Generation Control Widget -->
+            <div id="sec-batch" class="crimson-card p-6 relative overflow-hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <span>Automated Batch Billing Run</span>
+                            <span class="text-xs px-3 py-1 rounded-full bg-crimson-500/10 text-crimson-400 border border-crimson-500/30 font-mono">MySQL Cursor Procedure</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">Iterates over consumers, computes slab tariffs via calculate_slab_amount, and generates monthly invoices.</p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div>
+                            <input type="month" id="batch-month" value="2026-09"
+                                class="bg-noir-950 border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-crimson-500 font-mono">
+                        </div>
+                        <button id="btn-generate-bills" onclick="runBatchBilling()"
+                            class="btn-crimson text-xs font-bold px-5 py-2.5 rounded-full shadow-lg transition flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            <span>Run Batch Billing</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="batch-result" class="hidden mt-4 p-3.5 bg-crimson-500/10 border border-crimson-500/30 rounded-2xl text-xs text-crimson-300 flex items-center justify-between">
+                    <span id="batch-result-msg">Procedure completed.</span>
+                    <span class="font-mono text-white font-black" id="batch-result-count">60 Invoices Processed</span>
+                </div>
+            </div>
+
+            <!-- Invoices & Accounts Receivable Table -->
+            <div id="sec-invoices" class="crimson-card p-6 overflow-hidden">
+                
+                <!-- Table Controls -->
+                <div class="pb-4 mb-4 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Accounts Receivable & Customer Invoices</h3>
+                        <p class="text-xs text-slate-500">All customer invoices with payment settlement status</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <select id="filter-status" onchange="loadBillingData()" class="bg-noir-950 border border-white/10 rounded-full px-4 py-1.5 text-xs text-slate-300">
+                            <option value="">All Statuses</option>
+                            <option value="UNPAID">UNPAID</option>
+                            <option value="OVERDUE">OVERDUE</option>
+                            <option value="PARTIAL">PARTIAL</option>
+                            <option value="PAID">PAID</option>
+                        </select>
+
+                        <select id="filter-area" onchange="loadBillingData()" class="bg-noir-950 border border-white/10 rounded-full px-4 py-1.5 text-xs text-slate-300">
+                            <option value="">All Substation Areas</option>
+                        </select>
+
+                        <input type="text" id="search-input" placeholder="Search Consumer or ID..." onkeyup="filterInvoicesLocally()"
+                            class="bg-noir-950 border border-white/10 rounded-full px-4 py-1.5 text-xs text-white placeholder-slate-500 focus:border-crimson-500">
+
+                        <button onclick="exportToCSV()"
+                            class="btn-glass-pill text-slate-200 text-xs px-4 py-1.5 rounded-full transition flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-crimson-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <span>Export CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-noir-950/80 text-slate-500 uppercase text-[10px] font-black tracking-widest border-b border-white/10">
+                            <tr>
+                                <th class="py-3 px-4">Bill #</th>
+                                <th class="py-3 px-4">Consumer</th>
+                                <th class="py-3 px-4">Area</th>
+                                <th class="py-3 px-4">Billing Month</th>
+                                <th class="py-3 px-4 text-right">Units (kWh)</th>
+                                <th class="py-3 px-4 text-right">Invoiced (₹)</th>
+                                <th class="py-3 px-4 text-right">Paid (₹)</th>
+                                <th class="py-3 px-4 text-right">Balance (₹)</th>
+                                <th class="py-3 px-4">Due Date</th>
+                                <th class="py-3 px-4">Status</th>
+                                <th class="py-3 px-4 text-center">PDF</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billing-tbody" class="divide-y divide-white/5 text-slate-300 font-mono">
+                            <tr><td colspan="11" class="py-6 text-center text-slate-500">Loading invoices...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- Area-wise Revenue Breakdown Table -->
+            <div id="sec-areas" class="crimson-card p-6">
+                <h3 class="text-sm font-bold text-white mb-1">Substation Revenue & Collection Performance</h3>
+                <p class="text-xs text-slate-500 mb-4">Real-time collections by geographic electrical distribution area</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="border-b border-white/10 text-slate-500 font-mono text-[10px] uppercase">
+                                <th class="pb-2">Substation Area</th>
+                                <th class="pb-2">Substation Grid</th>
+                                <th class="pb-2">City</th>
+                                <th class="pb-2 text-right">Active Meters</th>
+                                <th class="pb-2 text-right">Total Energy (kWh)</th>
+                                <th class="pb-2 text-right">Total Revenue (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="area-summary-tbody" class="divide-y divide-white/5 text-slate-300 font-mono">
+                            <tr><td colspan="6" class="py-4 text-center text-slate-500">Aggregating area metrics...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script>
+        let currentBills = [];
+
+        let isSidebarCollapsed = false;
+        function toggleSidebar() {
+            const sidebar = document.getElementById("main-sidebar");
+            const icon = document.getElementById("sidebar-icon");
+            isSidebarCollapsed = !isSidebarCollapsed;
+            
+            if (isSidebarCollapsed) {
+                sidebar.classList.add("sidebar-collapsed");
+                icon.classList.add("rotate-180");
+            } else {
+                sidebar.classList.remove("sidebar-collapsed");
+                icon.classList.remove("rotate-180");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const user = requireRole(["BILLING_OFFICER", "ADMIN"]);
+            if (!user) return;
+
+            loadAreas();
+            loadBillingData();
+        });
+
+        async function loadAreas() {
+            try {
+                const res = await api.get("/areas");
+                const sel = document.getElementById("filter-area");
+                sel.innerHTML = `<option value="">All Substation Areas</option>` + 
+                    res.data.map(a => `<option value="${a.area_id}">${a.area_name}</option>`).join('');
+            } catch (err) {
+                console.error("Areas load error:", err);
+            }
+        }
+
+        async function loadBillingData() {
+            const status = document.getElementById("filter-status").value;
+            const areaId = document.getElementById("filter-area").value;
+            let url = `/bills?`;
+            if (status) url += `status=${status}&`;
+            if (areaId) url += `area=${areaId}&`;
+
+            try {
+                const res = await api.get(url);
+                currentBills = res.data;
+                renderBillingTable(currentBills);
+                loadAreaSummary();
+            } catch (err) {
+                showToast("Failed to load bills: " + err.message, "error");
+            }
+        }
+
+        function renderBillingTable(bills) {
+            const tbody = document.getElementById("billing-tbody");
+            if (!bills || bills.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="py-6 text-center text-slate-500">No records found matching filters.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = bills.map(b => {
+                const statusColor = b.status === 'PAID' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                                    b.status === 'PARTIAL' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                                    b.status === 'OVERDUE' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
+                                    'bg-slate-500/20 text-slate-300 border-slate-500/30';
+
+                return `
+                    <tr class="hover:bg-white/5 transition">
+                        <td class="py-3 px-4 font-mono text-crimson-500 font-bold">#${String(b.bill_id).padStart(5, '0')}</td>
+                        <td class="py-3 px-4 font-medium text-white">${b.customer_name}</td>
+                        <td class="py-3 px-4 text-slate-400">${b.area_name}</td>
+                        <td class="py-3 px-4 font-mono text-slate-300">${b.billing_period}</td>
+                        <td class="py-3 px-4 text-right font-mono text-slate-300">${b.units}</td>
+                        <td class="py-3 px-4 text-right font-mono text-white font-semibold">${formatCurrency(b.amount)}</td>
+                        <td class="py-3 px-4 text-right font-mono text-emerald-400">${formatCurrency(b.paid)}</td>
+                        <td class="py-3 px-4 text-right font-mono text-crimson-500 font-bold">${formatCurrency(b.balance)}</td>
+                        <td class="py-3 px-4 text-slate-400">${b.due_date}</td>
+                        <td class="py-3 px-4">
+                            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${statusColor}">
+                                ${b.status}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <a href="/api/bills/${b.bill_id}/pdf" target="_blank"
+                                class="btn-glass-pill px-3 py-1 rounded-full text-slate-200 text-[11px]">
+                                PDF
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterInvoicesLocally() {
+            const query = document.getElementById("search-input").value.toLowerCase();
+            const filtered = currentBills.filter(b => 
+                b.customer_name.toLowerCase().includes(query) ||
+                String(b.bill_id).includes(query) ||
+                b.area_name.toLowerCase().includes(query)
+            );
+            renderBillingTable(filtered);
+        }
+
+        async function runBatchBilling() {
+            const monthInput = document.getElementById("batch-month").value;
+            if (!monthInput) {
+                showToast("Please choose a billing month.", "warning");
+                return;
+            }
+
+            const monthDate = `${monthInput}-01`;
+            const btn = document.getElementById("btn-generate-bills");
+            btn.disabled = true;
+            btn.innerHTML = `<svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Executing Cursor...</span>`;
+
+            try {
+                const res = await api.post("/billing/generate", { month: monthDate });
+                showToast(res.data.message, "success");
+
+                document.getElementById("batch-result").classList.remove("hidden");
+                document.getElementById("batch-result-msg").textContent = `Stored procedure generate_all_bills('${monthDate}') finished.`;
+                document.getElementById("batch-result-count").textContent = `${res.data.bills_processed} Customers Billed`;
+
+                loadBillingData();
+            } catch (err) {
+                showToast("Billing procedure failed: " + err.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> <span>Run Batch Billing</span>`;
+            }
+        }
+
+        async function loadAreaSummary() {
+            try {
+                const res = await api.get("/analytics/revenue");
+                const tbody = document.getElementById("area-summary-tbody");
+                tbody.innerHTML = res.data.by_area.map(a => `
+                    <tr class="hover:bg-white/5 transition">
+                        <td class="py-2.5 font-medium text-white">${a.area_name}</td>
+                        <td class="py-2.5 text-slate-500">Regional Substation</td>
+                        <td class="py-2.5 text-slate-500">Bengaluru Grid</td>
+                        <td class="py-2.5 text-right font-mono text-crimson-500 font-bold">12 - 15</td>
+                        <td class="py-2.5 text-right font-mono text-slate-300">--</td>
+                        <td class="py-2.5 text-right font-mono text-emerald-400 font-bold">${formatCurrency(a.total_revenue)}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("Area summary error:", err);
+            }
+        }
+
+        function exportToCSV() {
+            if (!currentBills || currentBills.length === 0) {
+                showToast("No bill records to export.", "warning");
+                return;
+            }
+
+            const headers = ["Bill ID", "Customer Name", "Area", "Billing Period", "Units (kWh)", "Amount", "Paid", "Balance", "Due Date", "Status"];
+            const rows = currentBills.map(b => [
+                b.bill_id,
+                `"${b.customer_name}"`,
+                `"${b.area_name}"`,
+                b.billing_period,
+                b.units,
+                b.amount,
+                b.paid,
+                b.balance,
+                b.due_date,
+                b.status
+            ]);
+
+            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `VoltTrack_Billing_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

@@ -10,7 +10,7 @@ from flask import Flask, jsonify, send_from_directory, redirect, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from backend.config import Config
-from backend.db import close_db
+from backend.db import close_db, query_one
 from backend.auth import auth_bp
 from backend.routes.customers import customers_bp
 from backend.routes.meters import meters_bp
@@ -76,6 +76,24 @@ def create_app(test_config=None):
     def internal_error(e):
         return jsonify({"success": False, "error": "Internal server error occurred"}), 500
 
+    # Healthcheck Endpoint
+    @app.route("/api/health", methods=["GET"])
+    def health_check():
+        try:
+            row = query_one("SELECT 1 AS ok")
+            db_ok = bool(row and row.get("ok") == 1)
+            return jsonify({
+                "success": True,
+                "status": "healthy" if db_ok else "degraded",
+                "database": "connected" if db_ok else "unknown",
+            }), 200
+        except Exception as e:
+            return jsonify({
+                "success": False,
+                "status": "unhealthy",
+                "error": str(e),
+            }), 503
+
     # Frontend Page Routes
     @app.route("/")
     def index():
@@ -97,8 +115,8 @@ def create_app(test_config=None):
     def billing_page():
         return send_from_directory(frontend_dir, "billing.html")
 
-    # Start background scheduler if not in debug reload child
-    if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
+    # Start background scheduler if not in debug reload child or test mode
+    if not app.config.get("TESTING") and (os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug):
         try:
             start_scheduler()
         except Exception as e:

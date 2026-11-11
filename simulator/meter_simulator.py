@@ -14,28 +14,27 @@ import random
 import argparse
 from datetime import datetime, timedelta
 import pymysql
-from dotenv import load_dotenv
 
-# Load environment configuration
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+# Ensure project root is importable when run directly as a script
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
 
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = int(os.getenv("DB_PORT", 3306))
-DB_USER = os.getenv("DB_USER", "root")
-DB_PASS = os.getenv("DB_PASS", "")
-DB_NAME = os.getenv("DB_NAME", "smartmeter")
+from backend.config import Config
+
 
 def get_connection():
     return pymysql.connect(
-        host=DB_HOST,
-        port=DB_PORT,
-        user=DB_USER,
-        password=DB_PASS,
-        database=DB_NAME,
+        host=Config.DB_HOST,
+        port=Config.DB_PORT,
+        user=Config.DB_USER,
+        password=Config.DB_PASS,
+        database=Config.DB_NAME,
         autocommit=False,
         charset='utf8mb4',
         cursorclass=pymysql.cursors.DictCursor
     )
+
 
 def simulate_hourly_usage(hour, meter_type, customer_category, month):
     """
@@ -47,9 +46,9 @@ def simulate_hourly_usage(hour, meter_type, customer_category, month):
         base_curve = 0.25 + 0.1 * math.sin(hour)
     elif 6 <= hour < 18:
         base_curve = 0.70 + 0.25 * math.sin((hour - 6) * math.pi / 12)
-    elif 18 <= hour < 22: # Peak window
+    elif 18 <= hour < 22:  # Peak window
         base_curve = 1.65 + 0.45 * math.sin((hour - 18) * math.pi / 4)
-    else: # 22 - 24
+    else:  # 22 - 24
         base_curve = 0.55 + 0.15 * math.sin((hour - 22) * math.pi / 2)
 
     # Seasonal temperature factor (June/July/August hot summer vs September/October)
@@ -66,14 +65,15 @@ def simulate_hourly_usage(hour, meter_type, customer_category, month):
         base_kwh = random.uniform(1.2, 3.5) * comm_curve * season_factor
         voltage = round(random.uniform(228.0, 242.0), 1)
         pf = round(random.uniform(0.90, 0.96), 2)
-    else: # INDUSTRIAL
+    else:  # INDUSTRIAL
         # Industrial 24/7 steady load with shift patterns
         ind_curve = 1.3 if 8 <= hour <= 20 else 1.0
         base_kwh = random.uniform(8.0, 22.0) * ind_curve * season_factor
-        voltage = round(random.uniform(400.0, 425.0) / 1.732, 1) # Phase voltage
+        voltage = round(random.uniform(400.0, 425.0) / 1.732, 1)  # Phase voltage
         pf = round(random.uniform(0.88, 0.95), 2)
 
     return round(max(0.01, base_kwh), 3), voltage, pf
+
 
 def run_bulk_simulation(months=4, target_meters=15):
     """
@@ -82,6 +82,7 @@ def run_bulk_simulation(months=4, target_meters=15):
     """
     print(f"[*] Starting Bulk Simulation: {months} months across {target_meters} meters...")
     conn = get_connection()
+    is_tty = sys.stdout.isatty()
     try:
         with conn.cursor() as cur:
             # Fetch target meters and customer category
@@ -102,7 +103,7 @@ def run_bulk_simulation(months=4, target_meters=15):
 
             # Calculate start date (4 months back from end of September 2026)
             end_date = datetime(2026, 9, 30, 23, 0, 0)
-            start_date = datetime(2026, 6, 1, 0, 0, 0) # June, July, August, September = 122 days
+            start_date = datetime(2026, 6, 1, 0, 0, 0)  # June, July, August, September = 122 days
             total_hours = int((end_date - start_date).total_seconds() // 3600) + 1
             print(f"[*] Time horizon: {start_date} to {end_date} ({total_hours} hours per meter)")
 
@@ -111,13 +112,11 @@ def run_bulk_simulation(months=4, target_meters=15):
             existing = cur.fetchone()['total']
             print(f"[*] Current meter_reading row count: {existing}")
 
-            # Prepare insert batches
             insert_sql = """
                 INSERT INTO meter_reading (meter_id, reading_ts, units_consumed, voltage, power_factor)
                 VALUES (%s, %s, %s, %s, %s)
             """
-            
-            # Temporarily disable triggers for bulk load speed if needed, but our triggers check conditions
+
             # We want clean normal readings during bulk without flooding 100k alerts
             batch = []
             batch_size = 5000
@@ -137,15 +136,15 @@ def run_bulk_simulation(months=4, target_meters=15):
                 mid = m['meter_id']
                 mtype = m['meter_type']
                 mcat = m['category']
-                
+
                 # Introduce one theft suspect pattern for meter 7 (usage drops by 70% in September)
                 is_theft_suspect = (mid == 7)
 
                 for ts in hour_steps:
                     kwh, volt, pf = simulate_hourly_usage(ts.hour, mtype, mcat, ts.month)
-                    
+
                     if is_theft_suspect and ts.month == 9:
-                        kwh = round(kwh * 0.25, 3) # Dramatic drop for analytics query 7
+                        kwh = round(kwh * 0.25, 3)  # Dramatic drop for analytics query 7
 
                     batch.append((mid, ts.strftime('%Y-%m-%d %H:%M:%S'), kwh, volt, pf))
 
@@ -154,7 +153,10 @@ def run_bulk_simulation(months=4, target_meters=15):
                         conn.commit()
                         total_inserted += len(batch)
                         batch.clear()
-                        print(f"    -> Inserted {total_inserted} records...", end='\r')
+                        if is_tty:
+                            print(f"    -> Inserted {total_inserted} records...", end='\r')
+                        elif total_inserted % 25000 == 0:
+                            print(f"    -> Inserted {total_inserted} records...")
 
             if batch:
                 cur.executemany(insert_sql, batch)
@@ -177,6 +179,7 @@ def run_bulk_simulation(months=4, target_meters=15):
 
     finally:
         conn.close()
+
 
 def run_live_simulation(interval=5):
     """
@@ -207,27 +210,27 @@ def run_live_simulation(interval=5):
 
             # Random roll for anomaly
             roll = random.random()
-            if roll < 0.005: # Outage
+            if roll < 0.005:  # Outage
                 units = 0.0
                 volt = 0.0
                 pf = 0.0
                 anomaly = "[OUTAGE ALERT TRIGGERED]"
-            elif roll < 0.015: # Tamper (zero consumption, live voltage)
+            elif roll < 0.015:  # Tamper (zero consumption, live voltage)
                 units = 0.0
                 volt = round(random.uniform(225.0, 235.0), 1)
                 pf = 0.95
                 anomaly = "[TAMPER ALERT TRIGGERED]"
-            elif roll < 0.035: # High usage spike
+            elif roll < 0.035:  # High usage spike
                 units = round(random.uniform(5.5, 9.2), 3)
                 volt = round(random.uniform(220.0, 235.0), 1)
                 pf = 0.92
                 anomaly = "[HIGH USAGE ALERT TRIGGERED]"
-            elif roll < 0.050: # Voltage sag
+            elif roll < 0.050:  # Voltage sag
                 units = round(random.uniform(0.5, 1.8), 3)
                 volt = round(random.uniform(140.0, 175.0), 1)
                 pf = 0.88
                 anomaly = "[LOW VOLTAGE ALERT TRIGGERED]"
-            else: # Normal reading
+            else:  # Normal reading
                 units, volt, pf = simulate_hourly_usage(now.hour, m['meter_type'], 'DOMESTIC', now.month)
                 anomaly = "Normal"
 
@@ -246,6 +249,7 @@ def run_live_simulation(interval=5):
     finally:
         conn.close()
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="VoltTrack Smart Meter Ingestion Simulator")
     parser.add_argument("--bulk", action="store_true", help="Back-fill 4 months of historical readings (100k+ rows)")
@@ -262,4 +266,3 @@ if __name__ == "__main__":
         run_live_simulation(interval=args.interval)
     else:
         print("Usage: python meter_simulator.py --bulk [--months 4 --meters 15] OR python meter_simulator.py --live [--interval 5]")
-

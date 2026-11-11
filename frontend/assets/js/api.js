@@ -67,6 +67,43 @@ const api = {
     delete: (endpoint) => apiRequest(endpoint, { method: "DELETE" }),
 };
 
+async function downloadBillPdf(billId) {
+    const token = getToken();
+    try {
+        const response = await fetch(`${API_BASE}/bills/${billId}/pdf`, {
+            method: "GET",
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+
+        if (response.status === 401) {
+            showToast("Session expired. Please log in again.", "error");
+            setTimeout(() => clearSession(), 1200);
+            return;
+        }
+
+        if (!response.ok) {
+            let errMsg = "Failed to generate PDF invoice";
+            try {
+                const errData = await response.json();
+                errMsg = errData.error || errMsg;
+            } catch (_) {}
+            throw new Error(errMsg);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `VoltTrack_Bill_${billId}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    } catch (err) {
+        showToast(err.message || "PDF download failed", "error");
+    }
+}
+
 // Toast Notifications
 function showToast(message, type = "info") {
     let container = document.getElementById("toast-container");

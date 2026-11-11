@@ -268,7 +268,7 @@
             const areaId = document.getElementById("filter-area").value;
             let url = `/bills?`;
             if (status) url += `status=${status}&`;
-            if (areaId) url += `area=${areaId}&`;
+            if (areaId) url += `area_id=${areaId}&`;
 
             try {
                 const res = await api.get(url);
@@ -310,10 +310,10 @@
                             </span>
                         </td>
                         <td class="py-3 px-4 text-center">
-                            <a href="/api/bills/${b.bill_id}/pdf" target="_blank"
+                            <button type="button" onclick="downloadBillPdf(${b.bill_id})"
                                 class="btn-glass-pill px-3 py-1 rounded-full text-slate-200 text-[11px]">
                                 PDF
-                            </a>
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -348,7 +348,7 @@
 
                 document.getElementById("batch-result").classList.remove("hidden");
                 document.getElementById("batch-result-msg").textContent = `Stored procedure generate_all_bills('${monthDate}') finished.`;
-                document.getElementById("batch-result-count").textContent = `${res.data.bills_processed} Customers Billed`;
+                document.getElementById("batch-result-count").textContent = `${res.data.total_bills ?? res.data.bills_processed ?? 0} Customers Billed`;
 
                 loadBillingData();
             } catch (err) {

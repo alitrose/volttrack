@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 from datetime import datetime
 from flask import Blueprint, request, jsonify
@@ -41,9 +42,19 @@ def trigger_backup():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_file = os.path.join(backup_dir, f"smartmeter_backup_{timestamp}.sql")
 
-    mysqldump_exe = os.path.join(Config.MYSQL_BIN_PATH, "mysqldump.exe")
+    mysqldump_exe = shutil.which("mysqldump")
+    if not mysqldump_exe:
+        candidate = os.path.join(Config.MYSQL_BIN_PATH, "mysqldump.exe")
+        if os.path.exists(candidate):
+            mysqldump_exe = candidate
+        else:
+            mysqldump_exe = r"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe"
+
     if not os.path.exists(mysqldump_exe):
-        mysqldump_exe = r"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe"
+        return jsonify({
+            "success": False,
+            "error": "mysqldump client binary is not available in this runtime environment."
+        }), 501
 
     cmd = [
         mysqldump_exe,

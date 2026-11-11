@@ -486,10 +486,10 @@
                                         Pay
                                     </button>
                                 ` : ''}
-                                <a href="/api/bills/${b.bill_id}/pdf" target="_blank"
+                                <button type="button" onclick="downloadBillPdf(${b.bill_id})"
                                     class="btn-glass-pill px-3 py-1 rounded-full text-slate-300 text-[11px]">
                                     PDF
-                                </a>
+                                </button>
                             </div>
                         </td>
                     </tr>
